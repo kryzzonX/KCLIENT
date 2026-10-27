@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+<title>K Client Launcher</title>
+<style>
+:root{--bg:#0c0814;--panel:#150f22;--panel2:#1c1430;--line:#2c2145;--tx:#f1ecfa;--tx2:#a99dc4;--p:#a855f7;--p2:#7c3aed}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 system-ui,"Segoe UI",sans-serif;display:flex;height:100vh;overflow:hidden}
+aside{width:230px;background:var(--panel);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.av{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--p),var(--p2));display:grid;place-items:center;font-weight:800;color:#fff;flex-shrink:0}
+.logo b{letter-spacing:.12em}
+nav button{all:unset;display:block;width:100%;padding:10px 12px;border-radius:10px;color:var(--tx2);cursor:pointer;box-sizing:border-box}
+nav button:hover,nav button.on{background:var(--panel2);color:var(--tx)}
+nav button.on{box-shadow:inset 3px 0 0 var(--p)}
+.chip{all:unset;box-sizing:border-box;margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;width:100%}
+.chip small{display:block;color:var(--tx2);font-size:11px}
+main{flex:1;min-width:0;overflow-y:auto;padding:26px 34px 48px}
+.view{display:none;max-width:1000px;margin:0 auto}.view.on{display:block}
+.hero{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:20px;padding:32px;background:radial-gradient(circle at 85% 40%,#3b1d6b 0,transparent 55%),var(--panel)}
+.hero h1{font-size:40px;line-height:1.05;margin:6px 0 8px}.hero h1 span{color:var(--p)}
+.hero p{color:var(--tx2);margin:0 0 20px}
+.bigk{position:absolute;right:50px;top:50%;transform:translateY(-50%);font-size:170px;font-weight:900;font-style:italic;color:#e9d5ff;opacity:.9;line-height:1}
+.play{all:unset;cursor:pointer;display:inline-flex;padding:14px 38px;border-radius:12px;background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;font-weight:700;font-size:17px}
+.play:hover{filter:brightness(1.12)}.play[aria-busy=true]{opacity:.55;pointer-events:none}
+.bar{height:8px;border-radius:4px;background:var(--bg);border:1px solid var(--line);overflow:hidden;margin-top:14px;max-width:440px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--p2),var(--p));transition:width .2s}
+#st{font-size:13px;color:var(--tx2);margin-top:8px;min-height:20px}
+h2{font-size:20px;margin:26px 0 6px}h3{margin:0 0 8px;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+.card.act{border-color:var(--p)}
+label{display:block;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--tx2);margin-bottom:8px}
+select,input[type=text]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font:inherit}
+select:focus,input:focus{outline:2px solid var(--p)}
+.hint{font-size:12px;color:var(--tx2);margin-top:6px}
+.btn{all:unset;cursor:pointer;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--tx);font-size:13px}
+.btn:hover{border-color:var(--p)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center}
+.split{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.tag{font-size:10px;letter-spacing:.1em;padding:1px 7px;border-radius:5px;background:#2a1a4a;color:#d8b4fe}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;text-transform:none;letter-spacing:0;color:var(--tx);margin:8px 0}
+.chk input{accent-color:var(--p);width:16px;height:16px}
+.mrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:6px;background:var(--panel)}.mrow.off{opacity:.5}
+</style>
+</head>
+<body>
+<aside>
+  <div class="logo"><div class="av">K</div><b>K CLIENT</b></div>
+  <nav>
+    <button data-v="home" class="on">Etusivu</button>
+    <button data-v="mods">Modit</button>
+    <button data-v="prof">Profiilit</button>
+    <button data-v="acc">Tilit</button>
+    <button data-v="set">Asetukset</button>
+  </nav>
+  <button class="chip" id="chip"><span class="av" id="chipav">P</span><span><b id="chipn"></b><small id="chipt"></small></span></button>
+</aside>
+<main>
+<section class="view on" id="home">
+  <div class="hero">
+    <h1>Valmiina<br><span>dominoimaan?</span></h1>
+    <p id="sel"></p>
+    <button class="play" id="play">▶ PELAA</button>
+    <div class="bar"><i id="fill"></i></div>
+    <div id="st"></div>
+    <div class="bigk" aria-hidden="true">K</div>
+  </div>
+  <div class="grid">
+    <div class="card"><label for="hp">Profiili</label><select id="hp"></select><div class="hint" id="path"></div></div>
+    <div class="card"><label for="ver">Minecraft-versio</label><select id="ver"></select></div>
+    <div class="card"><label class="chk" style="margin-top:0"><input type="checkbox" id="fab">Käytä Fabricia (tarvitaan modeihin)</label>
+      <label for="ram" style="margin-top:12px">Muisti: <span id="ramv"></span> GB</label><input type="range" id="ram" min="1" max="16" style="width:100%;accent-color:var(--p)"></div>
+  </div>
+</section>
+
+<section class="view" id="mods">
+  <h2 style="margin-top:0">Modit</h2>
+  <div class="hint" id="mhint"></div>
+  <div class="row"><button class="btn" id="oc">Asenna OneClient-modit</button><button class="btn" id="mall">Kaikki päälle</button><button class="btn" id="mnone">Kaikki pois</button></div>
+  <div id="inst"></div>
+  <h2>Hae lisää Modrinthista</h2>
+  <div class="row"><input type="text" id="q" placeholder="Hae modeja Modrinthista..." style="flex:1"><button class="btn" id="qgo">Hae</button><button class="btn" id="qdir">Avaa mods-kansio</button></div>
+  <div id="hits"></div>
+  <div class="row"><button class="btn" id="more">Lisää tuloksia</button></div>
+</section>
+
+<section class="view" id="prof">
+  <h2 style="margin-top:0">Profiilit</h2>
+  <div class="hint">Jokaisella profiililla on oma kansio: omat modit, maailmat, asetukset ja resurssipaketit.</div>
+  <div class="card" style="margin-top:12px">
+    <div class="row" style="margin-top:0"><input type="text" id="pname" placeholder="Uuden profiilin nimi" style="max-width:240px"><select id="nver" style="width:auto"></select>
+      <select id="npre" style="width:auto"><option value="one">OneClient-modit</option><option value="rec">Suositellut modit</option><option value="pvp">PvP-paketti</option><option value="none">Ei modeja</option></select></div>
+    <label class="chk"><input type="checkbox" id="nfab" checked>Käytä Fabricia</label>
+    <button class="btn" id="padd">Luo profiili</button>
+  </div>
+  <div class="grid" id="plist"></div>
+</section>
+
+<section class="view" id="acc">
+  <h2 style="margin-top:0">Tilit</h2>
+  <div class="grid" id="alist"></div>
+  <h2>Lisää tili</h2>
+  <div class="grid">
+    <div class="card"><h3>Microsoft-tili</h3><div class="hint">Avaa Microsoftin viralliset kirjautumissivut. Vaatii ostetun Minecraft: Java Editionin.</div>
+      <div class="row"><button class="btn" id="msbtn">Kirjaudu Microsoftilla</button></div></div>
+    <div class="card"><h3>Offline-tili</h3><input type="text" id="oname" maxlength="16" placeholder="Käyttäjänimi">
+      <div class="row"><button class="btn" id="oadd">Lisää offline-tili</button></div><div class="hint">Vain yksinpeliin ja offline-palvelimille.</div></div>
+  </div>
+</section>
+<section class="view" id="set">
+  <h2 style="margin-top:0">Asetukset</h2>
+  <div class="grid">
+    <div class="card"><label for="sram">Muisti: <span id="sramv"></span> GB (aktiivinen profiili)</label><input type="range" id="sram" min="1" max="16" style="width:100%;accent-color:var(--p)"><div class="hint">PvP:hen 3–6 GB riittää yleensä.</div></div>
+    <div class="card"><label for="sjava">Java-polku (valinnainen)</label><input type="text" id="sjava" placeholder="tyhjä = käytä asennettua Javaa"><div class="hint">Esim. C:\Program Files\Eclipse Adoptium\jdk-21\bin\java.exe</div></div>
+    <div class="card"><label>Ikkunan koko pelissä</label><div class="row" style="margin:0"><input type="text" id="sw" placeholder="leveys" style="width:100px"><input type="text" id="sh" placeholder="korkeus" style="width:100px"></div><div class="hint">Tyhjä = pelin oletus.</div></div>
+    <div class="card"><label>Kansiot</label><button class="btn" id="sdir">Avaa profiilikansio</button><div class="hint">~/.kclient/profiles/</div></div>
+  </div>
+</section>
+</main>
+<script>
+const $=i=>document.getElementById(i);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const REC=["fabric-api","sodium","lithium","ferrite-core","entityculling","immediatelyfast","modmenu"];
+const PRE={rec:REC,pvp:REC.concat(["zoomify","sodium-extra"]),none:[]};
+let S=JSON.parse(localStorage.getItem("kcl3")||"null")||{accs:[{type:"off",name:"Player"}],accAct:0,profs:[{name:"K PvP",slug:"k-pvp",version:"",fabric:true,ram:4}],act:0};
+S.set=S.set||{java:"",w:"",h:""};
+let VERS=[],HITS=[],MODS=[],OFF=0,busy=false;
+const P=()=>S.profs[S.act],A=()=>S.accs[S.accAct];
+const save=()=>localStorage.setItem("kcl3",JSON.stringify(S));
+const st=t=>{$("st").textContent=t};
+const clean=e=>String(e&&e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,"");
+const slugify=(n,ex)=>{let s=n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"profiili",b=s,i=2;while(ex.includes(s)){s=b+"-"+i;i++}return s};
+const opts=(el,arr)=>{el.innerHTML=arr.map(v=>"<option>"+esc(v)+"</option>").join("")};
+
+function render(){
+  const p=P(),a=A();
+  opts($("hp"),S.profs.map(x=>x.name));$("hp").selectedIndex=S.act;
+  if(VERS.length){if(!VERS.includes(p.version))p.version=VERS[0];opts($("ver"),VERS);$("ver").value=p.version}
+  $("fab").checked=p.fabric;$("ram").value=p.ram;$("ramv").textContent=p.ram;
+  $("path").textContent="~/.kclient/profiles/"+p.slug;setRender();
+  $("sel").textContent=p.name+" · "+(p.version||"...")+" · "+a.name;
+  $("mhint").textContent="Haku koskee profiilia "+p.name+" (Fabric, Minecraft "+(p.version||"?")+"). Modit asennetaan profiilin mods-kansioon.";
+  $("chipav").textContent=a.name.charAt(0).toUpperCase();$("chipn").textContent=a.name;$("chipt").textContent=a.type==="ms"?"Microsoft":"Offline";
+  $("plist").innerHTML=S.profs.map((x,i)=>'<div class="card'+(i===S.act?" act":"")+'"><div class="split"><b>'+esc(x.name)+'</b>'+(i===S.act?'<span class="tag">AKTIIVINEN</span>':"")+'</div><div class="hint">'+esc(x.version)+" · "+(x.fabric?"Fabric":"Vanilla")+" · "+x.ram+' GB</div><div class="hint" style="font-family:monospace">~/.kclient/profiles/'+esc(x.slug)+'</div><div class="row" style="margin-bottom:0"><button class="btn" data-a="'+i+'">Valitse</button><button class="btn" data-c="'+i+'">Kopioi</button><button class="btn" data-o="'+i+'">Avaa kansio</button>'+(S.profs.length>1?'<button class="btn" data-d="'+i+'">Poista</button>':"")+"</div></div>").join("");
+  $("alist").innerHTML=S.accs.map((x,i)=>'<div class="card'+(i===S.accAct?" act":"")+'"><div class="split"><span style="display:flex;gap:10px;align-items:center"><span class="av">'+esc(x.name.charAt(0).toUpperCase())+'</span><span><b>'+esc(x.name)+'</b><div class="hint" style="margin:0">'+(x.type==="ms"?"Microsoft":"Offline")+"</div></span></span>"+(i===S.accAct?'<span class="tag">AKTIIVINEN</span>':"")+'</div><div class="row" style="margin-bottom:0"><button class="btn" data-u="'+i+'">Käytä</button>'+(S.accs.length>1?'<button class="btn" data-r="'+i+'">'+(x.type==="ms"?"Kirjaa ulos":"Poista")+"</button>":"")+"</div></div>").join("");
+  save();
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on"));b.classList.add("on");
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));$(b.dataset.v).classList.add("on");
+  if(b.dataset.v==="mods"){loadMods();if(!HITS.length)search(0)}});
+$("chip").onclick=()=>document.querySelector('nav button[data-v="acc"]').click();
+$("hp").onchange=()=>{S.act=$("hp").selectedIndex;render()};
+$("ver").onchange=()=>{P().version=$("ver").value;HITS=[];render()};
+$("fab").onchange=()=>{P().fabric=$("fab").checked;render()};
+$("ram").oninput=()=>{P().ram=+$("ram").value;render()};
+
+// ---- tilit
+$("alist").onclick=e=>{const d=e.target.dataset;
+  if(d.u!==undefined)S.accAct=+d.u;
+  if(d.r!==undefined){const r=+d.r;S.accs.splice(r,1);if(r<S.accAct)S.accAct--;else if(r===S.accAct)S.accAct=0;S.accAct=Math.min(S.accAct,S.accs.length-1)}
+  render()};
+$("oadd").onclick=()=>{const n=$("oname").value.trim();if(!n)return;S.accs.push({type:"off",name:n});S.accAct=S.accs.length-1;$("oname").value="";render()};
+$("msbtn").onclick=async()=>{
+  try{const r=await api.msLogin();
+    S.accs=S.accs.filter(a=>a.uuid!==r.uuid);S.accs.push({type:"ms",name:r.name,uuid:r.uuid,refresh:r.refresh});S.accAct=S.accs.length-1;render()}
+  catch(e){alert("Kirjautuminen epäonnistui: "+clean(e))}};
+
+// ---- profiilit
+$("padd").onclick=async()=>{
+  const n=$("pname").value.trim();if(!n)return alert("Anna profiilille nimi.");
+  const p={name:n,slug:slugify(n,S.profs.map(x=>x.slug)),version:$("nver").value,fabric:$("nfab").checked,ram:4};
+  S.profs.push(p);S.act=S.profs.length-1;$("pname").value="";render();
+  await api.ensure(p.slug);
+  await seed(p,$("npre").value)};
+$("plist").onclick=async e=>{const d=e.target.dataset;
+  if(d.a!==undefined)S.act=+d.a;
+  if(d.o!==undefined)api.openDir(S.profs[+d.o].slug);
+  if(d.c!==undefined){const s=S.profs[+d.c],n=s.name+" (kopio)",c=Object.assign({},s,{name:n,slug:slugify(n,S.profs.map(x=>x.slug))});
+    await api.copyProfile({from:s.slug,to:c.slug});S.profs.push(c);S.act=S.profs.length-1}
+  if(d.d!==undefined){const p=S.profs[+d.d];
+    if(confirm("Poistetaanko myös profiilin "+p.name+" kansio (modit, maailmat, asetukset)?\nOK = poista kansio pysyvästi, Peruuta = älä poista profiilia."))
+      {await api.removeProfile(p.slug);S.profs.splice(+d.d,1);S.act=0}}
+  render()};
+
+// ---- Modrinth
+async function search(off){
+  try{const r=await api.search({q:$("q").value.trim(),ver:P().version,offset:off});
+    if(off===0)HITS=[];HITS=HITS.concat(r.hits);OFF=HITS.length;
+    $("hits").innerHTML=HITS.map((h,i)=>'<div class="card split" style="margin-bottom:10px"><div><b>'+esc(h.title)+'</b><div class="hint">'+esc(h.desc)+" · "+h.downloads.toLocaleString("fi")+' latausta</div></div><button class="btn" data-i="'+i+'">Asenna</button></div>').join("")||'<div class="hint">Ei tuloksia.</div>'}
+  catch(e){$("hits").innerHTML='<div class="hint">Haku epäonnistui: '+esc(clean(e))+"</div>"}}
+$("qgo").onclick=()=>search(0);
+$("q").onkeydown=e=>{if(e.key==="Enter")search(0)};
+$("more").onclick=()=>search(OFF);
+$("qdir").onclick=()=>api.openDir(P().slug);
+$("hits").onclick=async e=>{const i=e.target.dataset.i;if(i===undefined)return;const h=HITS[+i],p=P();
+  e.target.textContent="...";
+  const r=await api.install({ids:[h.id],ver:p.version,slug:p.slug});
+  e.target.textContent=r.ok.length?"Asennettu":"Ei saatavilla";loadMods();
+  $("mhint").textContent=r.ok.length?"Asennettu: "+r.ok.join(", "):"Virhe: "+r.bad.join(", ")};
+
+// ---- OneClient-modit ja asennetut modit
+async function seed(p,preset){
+  if(!p.fabric)return;
+  if(preset==="one"){
+    try{const r=await api.installPack({slug:p.slug,ver:p.version});
+      if(r.ok){p.seeded=true;save();st("OneClient-modit asennettu: "+(r.total-r.failed.length)+"/"+r.total+(r.failed.length?" (osa ei saatavilla)":""));return}
+    }catch(e){st("OneClient-pakettia ei saatu ("+clean(e)+"), asennetaan peruspaketti...")}
+    preset="rec"}
+  const ids=PRE[preset]||[];
+  if(ids.length){const r=await api.install({ids,ver:p.version,slug:p.slug});st("Modit ladattu: "+r.ok.length+" tiedostoa"+(r.bad.length?" (ei saatavilla: "+r.bad.length+")":""))}
+  p.seeded=true;save()}
+async function loadMods(){
+  try{MODS=await api.listMods(P().slug)}catch(e){MODS=[]}
+  $("inst").innerHTML=MODS.length?MODS.map((m,i)=>'<div class="mrow'+(m.enabled?"":" off")+'"><label class="chk" style="margin:0"><input type="checkbox" data-t="'+i+'"'+(m.enabled?" checked":"")+">"+esc(m.name)+'</label><button class="btn" data-x="'+i+'">Poista</button></div>').join(""):'<div class="hint">Ei asennettuja modeja. Paina "Asenna OneClient-modit" tai hae modeja alta.</div>'}
+$("inst").onclick=async e=>{const d=e.target.dataset;
+  if(d.t!==undefined){const m=MODS[+d.t];await api.toggleMod({slug:P().slug,file:m.file,enable:e.target.checked})}
+  if(d.x!==undefined){const m=MODS[+d.x];if(!confirm("Poistetaanko "+m.name+"?"))return;await api.removeMod({slug:P().slug,file:m.file})}
+  loadMods()};
+$("oc").onclick=async()=>{$("oc").disabled=true;await seed(P(),"one");$("oc").disabled=false;loadMods()};
+const setAll=on=>async()=>{for(const m of MODS)if(m.enabled!==on)await api.toggleMod({slug:P().slug,file:m.file,enable:on});loadMods()};
+$("mall").onclick=setAll(true);$("mnone").onclick=setAll(false);
+function setRender(){$("sjava").value=S.set.java;$("sw").value=S.set.w;$("sh").value=S.set.h;$("sram").value=P().ram;$("sramv").textContent=P().ram}
+["sjava","sw","sh"].forEach(id=>$(id).oninput=()=>{S.set.java=$("sjava").value.trim();S.set.w=$("sw").value.trim();S.set.h=$("sh").value.trim();save()});
+$("sram").oninput=()=>{P().ram=+$("sram").value;render()};
+$("sdir").onclick=()=>api.openDir("");
+
+// ---- pelaa
+api.on("status",st);
+api.on("progress",p=>{$("fill").style.width=Math.round(100*p.task/Math.max(p.total,1))+"%"});
+api.on("closed",()=>{st("Peli suljettu");$("fill").style.width="0"});
+$("play").onclick=async()=>{
+  if(busy)return;busy=true;$("play").setAttribute("aria-busy","true");st("Valmistellaan...");
+  try{await api.ensure(P().slug);if(!P().seeded)await seed(P(),"one");const r=await api.play({acc:A(),prof:P(),set:S.set});
+    if(r.refresh&&A().type==="ms"){A().refresh=r.refresh;save()}st("Peli käynnistetty")}
+  catch(e){st("Virhe: "+clean(e))}
+  finally{busy=false;$("play").removeAttribute("aria-busy")}};
+
+render();
+api.versions().then(v=>{VERS=v;$("nver").innerHTML=v.map(x=>"<option>"+x+"</option>").join("");render()}).catch(e=>st("Versioluettelon haku epäonnistui: "+clean(e)));
+</script>
+</body>
+</html>
