@@ -5,14 +5,40 @@ on:
   push:
     tags: ["v*"]
 
+permissions:
+  contents: write
+
 jobs:
-  build:
+  mod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.12
+      - run: gradle build --no-daemon
+        working-directory: "Uusi kansio/mod"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: k-client-mod
+          path: "Uusi kansio/mod/build/libs/*.jar"
+
+  app:
+    needs: mod
     runs-on: windows-latest
     defaults:
       run:
         working-directory: "Uusi kansio"
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: k-client-mod
+          path: "Uusi kansio/mod-jar"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -20,5 +46,9 @@ jobs:
       - run: npm run dist
       - uses: actions/upload-artifact@v4
         with:
-          name: K-Client-Launcher-Setup
+          name: K-Client-Setup
           path: "Uusi kansio/dist/*.exe"
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: "Uusi kansio/dist/*.exe"
