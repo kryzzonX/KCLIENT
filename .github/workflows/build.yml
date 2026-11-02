@@ -17,21 +17,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { mc: "1.20.1", jv: 17, gfx: "3d", scroll: "3" }
-          - { mc: "1.20.2", jv: 17, gfx: "3d", scroll: "4" }
-          - { mc: "1.20.3", jv: 17, gfx: "3d", scroll: "4" }
-          - { mc: "1.20.4", jv: 17, gfx: "3d", scroll: "4" }
-          - { mc: "1.20.5", jv: 21, gfx: "3d", scroll: "4" }
-          - { mc: "1.20.6", jv: 21, gfx: "3d", scroll: "4" }
-          - { mc: "1.21", jv: 21, gfx: "3d", scroll: "4" }
-          - { mc: "1.21.1", jv: 21, gfx: "3d", scroll: "4" }
-          - { mc: "1.21.2", jv: 21, gfx: "3d", scroll: "4" }
-          - { mc: "1.21.3", jv: 21, gfx: "3d", scroll: "4" }
-          - { mc: "1.21.4", jv: 21, gfx: "3d", scroll: "4" }
-          - { mc: "1.21.5", jv: 21, gfx: "3d", scroll: "4" }
-          - { mc: "1.21.6", jv: 21, gfx: "2d", scroll: "4" }
-          - { mc: "1.21.7", jv: 21, gfx: "2d", scroll: "4" }
-          - { mc: "1.21.8", jv: 21, gfx: "2d", scroll: "4" }
+          - { mc: "1.21.2", gfx: "3d", entry: "old", loom: "1.11-SNAPSHOT", gradle: "8.14.3" }
+          - { mc: "1.21.3", gfx: "3d", entry: "old", loom: "1.11-SNAPSHOT", gradle: "8.14.3" }
+          - { mc: "1.21.4", gfx: "3d", entry: "old", loom: "1.11-SNAPSHOT", gradle: "8.14.3" }
+          - { mc: "1.21.5", gfx: "3d", entry: "old", loom: "1.11-SNAPSHOT", gradle: "8.14.3" }
+          - { mc: "1.21.6", gfx: "2d", entry: "old", loom: "1.11-SNAPSHOT", gradle: "8.14.3" }
+          - { mc: "1.21.7", gfx: "2d", entry: "old", loom: "1.11-SNAPSHOT", gradle: "8.14.3" }
+          - { mc: "1.21.8", gfx: "2d", entry: "old", loom: "1.11-SNAPSHOT", gradle: "8.14.3" }
+          - { mc: "1.21.11", gfx: "2d", entry: "new", loom: "1.14-SNAPSHOT", gradle: "9.6.0" }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -40,7 +33,7 @@ jobs:
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 8.14.3
+          gradle-version: ${{ matrix.gradle }}
       - name: Resolve mappings and Fabric API
         id: v
         run: |
@@ -57,9 +50,10 @@ jobs:
           -Pminecraft_version=${{ matrix.mc }}
           -Pyarn_mappings=${{ steps.v.outputs.yarn }}
           -Pfabric_version=${{ steps.v.outputs.fapi }}
-          -Pjava_release=${{ matrix.jv }}
+          -Pjava_release=21
+          -Ploom_version=${{ matrix.loom }}
           -Pgfx_variant=${{ matrix.gfx }}
-          -Pscroll_variant=${{ matrix.scroll }}
+          -Pentry_variant=${{ matrix.entry }}
           -Pmc_range=${{ matrix.mc }}
           -Parchives_base_name=k-client-${{ matrix.mc }}
       - uses: actions/upload-artifact@v4
