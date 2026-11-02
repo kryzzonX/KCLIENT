@@ -1,0 +1,9 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "fi.kclient.mc.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [],
+  "client": ["InGameHudMixin", "InGameHudMixin2"],
+  "injectors": { "defaultRequire": 0 }
+}

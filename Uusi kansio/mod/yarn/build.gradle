@@ -1,0 +1,39 @@
+plugins {
+    id 'fabric-loom' version "${loom_version}"
+}
+version = project.mod_version
+group = project.maven_group
+base { archivesName = project.archives_base_name }
+
+sourceSets {
+    main {
+        java {
+            srcDir '../common/src/main/java'
+            srcDir "src-gfx/${project.gfx_variant}"
+            srcDir "src-screen/${project.scroll_variant}"
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mc_range", project.mc_range
+    inputs.property "java_release", project.java_release
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version, "mc_range": project.mc_range, "java_release": project.java_release
+    }
+}
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = Integer.parseInt(project.java_release)
+    it.options.encoding = "UTF-8"
+}
+java {
+    sourceCompatibility = JavaVersion.toVersion(project.java_release)
+    targetCompatibility = JavaVersion.toVersion(project.java_release)
+}
