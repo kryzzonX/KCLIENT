@@ -9,9 +9,29 @@ permissions:
   contents: write
 
 jobs:
-  mod-1214:
+  mod-yarn:
+    name: mod ${{ matrix.mc }}
     runs-on: ubuntu-latest
     continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { mc: "1.20.1", jv: 17, gfx: "3d", scroll: "3" }
+          - { mc: "1.20.2", jv: 17, gfx: "3d", scroll: "4" }
+          - { mc: "1.20.3", jv: 17, gfx: "3d", scroll: "4" }
+          - { mc: "1.20.4", jv: 17, gfx: "3d", scroll: "4" }
+          - { mc: "1.20.5", jv: 21, gfx: "3d", scroll: "4" }
+          - { mc: "1.20.6", jv: 21, gfx: "3d", scroll: "4" }
+          - { mc: "1.21", jv: 21, gfx: "3d", scroll: "4" }
+          - { mc: "1.21.1", jv: 21, gfx: "3d", scroll: "4" }
+          - { mc: "1.21.2", jv: 21, gfx: "3d", scroll: "4" }
+          - { mc: "1.21.3", jv: 21, gfx: "3d", scroll: "4" }
+          - { mc: "1.21.4", jv: 21, gfx: "3d", scroll: "4" }
+          - { mc: "1.21.5", jv: 21, gfx: "3d", scroll: "4" }
+          - { mc: "1.21.6", jv: 21, gfx: "2d", scroll: "4" }
+          - { mc: "1.21.7", jv: 21, gfx: "2d", scroll: "4" }
+          - { mc: "1.21.8", jv: 21, gfx: "2d", scroll: "4" }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -20,17 +40,41 @@ jobs:
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 8.12
-      - run: gradle build --no-daemon
-        working-directory: "Uusi kansio/mod/v1214"
+          gradle-version: 8.14.3
+      - name: Resolve mappings and Fabric API
+        id: v
+        run: |
+          YARN=$(curl -fsS "https://meta.fabricmc.net/v2/versions/yarn/${{ matrix.mc }}" | jq -r '.[0].version')
+          FAPI=$(curl -fsS https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml | grep -o "<version>[^<]*+${{ matrix.mc }}</version>" | sed 's/<[^>]*>//g' | sort -V | tail -1)
+          test -n "$YARN" && test -n "$FAPI"
+          echo "yarn=$YARN" >> "$GITHUB_OUTPUT"
+          echo "fapi=$FAPI" >> "$GITHUB_OUTPUT"
+          echo "Yarn $YARN, Fabric API $FAPI"
+      - name: Build
+        working-directory: "Uusi kansio/mod/yarn"
+        run: >
+          gradle build --no-daemon
+          -Pminecraft_version=${{ matrix.mc }}
+          -Pyarn_mappings=${{ steps.v.outputs.yarn }}
+          -Pfabric_version=${{ steps.v.outputs.fapi }}
+          -Pjava_release=${{ matrix.jv }}
+          -Pgfx_variant=${{ matrix.gfx }}
+          -Pscroll_variant=${{ matrix.scroll }}
+          -Pmc_range=${{ matrix.mc }}
+          -Parchives_base_name=k-client-${{ matrix.mc }}
       - uses: actions/upload-artifact@v4
         with:
-          name: k-client-mod-1214
-          path: "Uusi kansio/mod/v1214/build/libs/*.jar"
+          name: k-client-mod-${{ matrix.mc }}
+          path: "Uusi kansio/mod/yarn/build/libs/*.jar"
 
-  mod-263:
+  mod-26:
+    name: mod ${{ matrix.mc }}
     runs-on: ubuntu-latest
     continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        mc: ["26.1", "26.2", "26.3"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -40,15 +84,28 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 9.6.0
-      - run: gradle build --no-daemon
-        working-directory: "Uusi kansio/mod/v263"
+      - name: Resolve Fabric API
+        id: v
+        run: |
+          FAPI=$(curl -fsS https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml | grep -o "<version>[^<]*+${{ matrix.mc }}</version>" | sed 's/<[^>]*>//g' | sort -V | tail -1)
+          test -n "$FAPI"
+          echo "fapi=$FAPI" >> "$GITHUB_OUTPUT"
+          echo "Fabric API $FAPI"
+      - name: Build
+        working-directory: "Uusi kansio/mod/v26"
+        run: >
+          gradle build --no-daemon
+          -Pminecraft_version=${{ matrix.mc }}
+          -Pfabric_version=${{ steps.v.outputs.fapi }}
+          -Pmc_range=~${{ matrix.mc }}
+          -Parchives_base_name=k-client-${{ matrix.mc }}
       - uses: actions/upload-artifact@v4
         with:
-          name: k-client-mod-263
-          path: "Uusi kansio/mod/v263/build/libs/*.jar"
+          name: k-client-mod-${{ matrix.mc }}
+          path: "Uusi kansio/mod/v26/build/libs/*.jar"
 
   app:
-    needs: [mod-1214, mod-263]
+    needs: [mod-yarn, mod-26]
     if: ${{ always() }}
     runs-on: windows-latest
     defaults:
